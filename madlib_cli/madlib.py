@@ -1,42 +1,50 @@
 import re
 
-def welcomeMessage():
-        print("Welcome to the Madlib game! Follow the prompts to create your own story.")
+
+def intro():
+    print(
+        "Welcome to the Madlib program! This is an interactive game where you will provide various words to fill in the blanks of a pre-written story. The program will prompt you to enter specific types of words, such as nouns, verbs, and adjectives, which will then be inserted into the story to create a unique and silly Madlib."
+    )
+
+
+def prompts(lst):
+    input_arr = []
+    for element in lst:
+        user_input = input(f"enter a {element}")
+        input_arr.append(user_input)
+    return input_arr
+
 
 def read_template(path):
     try:
-        with open(path, 'r') as file:
-            template = file.read().strip()
-            return template
+        with open(path, "r") as file:
+            content = file.read()
+            return content
     except FileNotFoundError:
-        print(f"Error: could not find template file at {path}")
-        raise
+        raise FileNotFoundError(f"File not found at path: {path}")
+
 
 def parse_template(template):
-    pattern = r"\{(\w+)\}"
-    language_parts = re.findall(pattern, template)
-    stripped = re.sub(pattern, "{}", template)
-    return stripped, tuple(language_parts)
+    variables = re.findall(r"{([^}]+)}", template)
+    stripped = re.sub("{[^}]+}", "{}", template)
+    return stripped, tuple(variables)
 
 
-def merge(template, inputs):
-    return template.format(*inputs)
+def merge(template, parts):
+    template = template.format(*parts)
+    return template
+
+
+def new_file(merged_template):
+    with open("./assets/new_file.txt", "w") as f:
+        f.write(merged_template)
+
 
 if __name__ == "__main__":
-    welcomeMessage()
-
-    file_path = "/assets/example.txt"
-
-    template = read_template(file_path)
-    stripped_template, language_parts = parse_template(template)
-
-    user_inputs = []
-    for part in language_parts:
-        user_input = input(f"Enter a {part.lower()}: ")
-        user_inputs.append(user_input)
-
-    madlib = merge(stripped_template, user_inputs)
-    print("\n" + madlib)
-
-    with open("assets/madlib.txt", "w") as file:
-        file.write(madlib)
+    intro()
+    returned_content = read_template("./assets/example.txt")
+    stripped, parts = parse_template(returned_content)
+    user_prompts = prompts(parts)
+    merged_txt = merge(stripped, user_prompts)
+    print(merged_txt)
+    new_file(merged_txt)
